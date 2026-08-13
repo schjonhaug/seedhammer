@@ -95,6 +95,38 @@ func TestAllocs(t *testing.T) {
 	}
 }
 
+func TestBitcoinArtwork(t *testing.T) {
+	plate, err := toPlate(bitcoinArtwork(engraverParams), engraverParams)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plate.Duration == 0 {
+		t.Fatal("Bitcoin artwork has no duration")
+	}
+}
+
+func TestStartScreenArtwork(t *testing.T) {
+	p := newPlatform()
+	ctx := NewContext(p)
+	m := new(StartScreen)
+	var action startScreenAction
+	selected := false
+	frame, quit := runUI(ctx, func() {
+		action, selected = m.Flow(ctx, &descriptorTheme)
+	})
+	defer quit()
+
+	press(&ctx.Router, Right)
+	content, ok := frame()
+	if !ok || !uiContains(content, "Engrave Artwork") {
+		t.Fatal("StartScreen: artwork page not shown")
+	}
+	click(&ctx.Router, Button3)
+	if _, ok := frame(); ok || !selected || action.prog != artwork {
+		t.Fatal("StartScreen: artwork page not selected")
+	}
+}
+
 func dumpUI(t testing.TB, o op.Op, path string) {
 	t.Helper()
 	clip := image.Rectangle{Max: image.Pt(testDisplayDim, testDisplayDim)}
